@@ -1,0 +1,601 @@
+
+#---------------------------------------------------------------------------------------------Rabbitmq---------------------------------------------------------
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-service # DNS name 
+  labels:
+    app: rabbitmq
+spec:
+  ports:
+    - port: 5672
+      targetPort: 5672
+      port: 15672
+      targetPort: 15672
+  selector:   
+    app: rabbitmq
+  clusterIP: None  # We Use DNS, Thus ClusterIP is not relevant
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:latest
+          ports:
+            - name: rabbitmq
+              containerPort: 5672
+            - name: port-2
+              containerPort: 15672
+
+#------------------------------------------------------------------------------------------------------------Service Registry-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-lb
+  labels:
+    app: eureka
+spec:
+  selector:
+    app: eureka
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8761
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka
+  labels:
+    app: eureka
+spec:
+  clusterIP: None
+  ports:
+    - port: 8761
+      name: eureka
+  selector:
+    app: eureka
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: eureka
+spec:
+  serviceName: "eureka"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eureka
+  template:
+    metadata:
+      labels:
+        app: eureka
+    spec:
+      containers:
+        - name: eureka
+          image: hugosilva12/service-registry:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 8761
+          env:
+            - name: EUREKA_SERVER_ADDRESS
+              value: http://eureka-0.eureka:8761/eureka
+#------------------------------------------------------------------------------------------------------------Gateway Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: gateway
+  ports:
+    - port: 80
+      targetPort: 9191
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+spec:
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: hugosilva12/service-gateway:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9191
+          env:
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"
+            - name: EUREKA_CLIENT_FETCH-REGISTRY
+              value: "true"
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"
+
+#------------------------------------------------------------------------------------------------------------Auth Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+spec:
+  type: ClusterIP
+  selector:
+    app: auth
+  ports:
+    - port: 9001
+      targetPort: 9001   
+
+---
+apiVersion: apps/v1 
+kind: Deployment    
+metadata:              
+  name: auth
+spec:                
+  selector:         
+    matchLabels:
+      app: auth
+  replicas: 1        
+  template:
+    metadata:
+      labels:        
+        app: auth
+    spec:
+      containers:
+        - name: auth
+          image: hugosilva12/service-auth:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9001                
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "AUTH-SERVICE"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql/service_auth"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: ")AdafGYkL&R#eecBppR^Cuf@#gq2HAI&"
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"  
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"
+            - name: SPRING_RABBITMQ_ADDRESSES
+              value: rabbitmq-service:5672   
+
+#------------------------------------------------------------------------------------------------------------User Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+spec:
+  type: ClusterIP
+  selector:
+    app: user
+  ports:
+    - port: 9002
+      targetPort: 9002
+
+---
+apiVersion: apps/v1 
+kind: Deployment    
+metadata:              
+  name: user
+spec:                
+  selector:         
+    matchLabels:
+      app: user
+  replicas: 1        
+  template:
+    metadata:
+      labels:        
+        app: user
+    spec:
+      containers:
+        - name: user
+          image: hugosilva12/service-user:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9002                
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "USER-SERVICE"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql/service_user"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: ")AdafGYkL&R#eecBppR^Cuf@#gq2HAI&"
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"  
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"
+            - name: SPRING_RABBITMQ_ADDRESSES
+              value: rabbitmq-service:5672   
+
+#------------------------------------------------------------------------------------------------------------Purchase Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: purchase-service
+spec:
+  type: ClusterIP
+  selector:
+    app: purchase
+  ports:
+    - port: 9003
+      targetPort: 9003
+
+---
+apiVersion: apps/v1 
+kind: Deployment    
+metadata:              
+  name: purchase
+spec:                
+  selector:         
+    matchLabels:
+      app: purchase
+  replicas: 1        
+  template:
+    metadata:
+      labels:        
+        app: purchase
+    spec:
+      containers:
+        - name: purchase
+          image: hugosilva12/service-purchase:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9003                
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "PURCHASE-SERVICE"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql/service_purchase"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: ")AdafGYkL&R#eecBppR^Cuf@#gq2HAI&"
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"  
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"
+            - name: SPRING_RABBITMQ_ADDRESSES
+              value: rabbitmq-service:5672  
+
+#------------------------------------------------------------------------------------------------------------Cardisassembly Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cardisassembly-service
+spec:
+  type: ClusterIP
+  selector:
+    app: cardisassembly
+  ports:
+    - port: 9005
+      targetPort: 9005
+
+---
+apiVersion: apps/v1 
+kind: Deployment    
+metadata:              
+  name: cardisassembly
+spec:                
+  selector:         
+    matchLabels:
+      app: cardisassembly
+  replicas: 1        
+  template:
+    metadata:
+      labels:        
+        app: cardisassembly
+    spec:
+      containers:
+        - name: cardisassembly
+          image: hugosilva12/service-cardisassembly:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9005                
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "CARDISASSEMBLY-SERVICE"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql/service_cardisassembly"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: ")AdafGYkL&R#eecBppR^Cuf@#gq2HAI&"
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"  
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"
+            - name: SPRING_RABBITMQ_ADDRESSES
+              value: rabbitmq-service:5672  
+#------------------------------------------------------------------------------------------------------------Advertising Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: advertising-service
+spec:
+  type: ClusterIP
+  selector:
+    app: advertising
+  ports:
+    - port: 9006
+      targetPort: 9006
+
+---
+apiVersion: apps/v1 
+kind: Deployment    
+metadata:              
+  name: advertising
+spec:                
+  selector:         
+    matchLabels:
+      app: advertising
+  replicas: 1        
+  template:
+    metadata:
+      labels:        
+        app: advertising
+    spec:
+      containers:
+        - name: advertising
+          image: hugosilva12/service-advertising:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9006                
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "ADVERTISING-SERVICE"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql/service_advertisement"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: ")AdafGYkL&R#eecBppR^Cuf@#gq2HAI&"
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"  
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"
+            - name: SPRING_RABBITMQ_ADDRESSES
+              value: rabbitmq-service:5672  
+
+#------------------------------------------------------------------------------------------------------------Sales Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sales-service
+spec:
+  type: ClusterIP
+  selector:
+    app: sales
+  ports:
+    - port: 9007
+      targetPort: 9007
+
+---
+apiVersion: apps/v1 
+kind: Deployment    
+metadata:              
+  name: sales
+spec:                
+  selector:         
+    matchLabels:
+      app: sales
+  replicas: 1        
+  template:
+    metadata:
+      labels:        
+        app: sales
+    spec:
+      containers:
+        - name: sales
+          image: hugosilva12/service-sales:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9007                
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "SALES-SERVICE"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql/service_sales"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: ")AdafGYkL&R#eecBppR^Cuf@#gq2HAI&"
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"  
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"
+            - name: SPRING_RABBITMQ_ADDRESSES
+              value: rabbitmq-service:5672  
+      
+#------------------------------------------------------------------------------------------------------------Precarious Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: precarious-service
+spec:
+  type: ClusterIP
+  selector:
+    app: precarious
+  ports:
+    - port: 9008
+      targetPort: 9008
+
+---
+apiVersion: apps/v1 
+kind: Deployment    
+metadata:              
+  name: precarious
+spec:                
+  selector:         
+    matchLabels:
+      app: precarious
+  replicas: 1        
+  template:
+    metadata:
+      labels:        
+        app: precarious
+    spec:
+      containers:
+        - name: precarious
+          image: hugosilva12/service-precarious:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9008                
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "PRECARIOUS-SERVICE"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql/service_prices"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: ")AdafGYkL&R#eecBppR^Cuf@#gq2HAI&"
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"  
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"
+            - name: SPRING_RABBITMQ_ADDRESSES
+              value: rabbitmq-service:5672 
+
+#------------------------------------------------------------------------------------------------------------Storage Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage-service
+spec:
+  type: ClusterIP
+  selector:
+    app: storage
+  ports:
+    - port: 9009
+      targetPort: 9009
+
+---
+apiVersion: apps/v1 
+kind: Deployment    
+metadata:              
+  name: storage
+spec:                
+  selector:         
+    matchLabels:
+      app: storage
+  replicas: 1        
+  template:
+    metadata:
+      labels:        
+        app: storage
+    spec:
+      containers:
+        - name: storage
+          image: hugosilva12/service-storage:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9009                
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "STORAGE-SERVICE"
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql/service_utils1"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: ")AdafGYkL&R#eecBppR^Cuf@#gq2HAI&"
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"  
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"
+            - name: SPRING_RABBITMQ_ADDRESSES
+              value: rabbitmq-service:5672
+#------------------------------------------------------------------------------------------------------------Hystrix Service-----------------------------------------------
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hystrix-service
+spec:
+  type: ClusterIP
+  selector:
+    app: hystrix
+  ports:
+    - port: 9295
+      targetPort: 9295
+ 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hystrix-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hystrix-service
+  template:
+    metadata:
+      labels:
+        app: hystrix-service
+    spec:
+      containers:
+        - name: hystrix-service
+          image: hugosilva12/hystrix:0.0.1-SNAPSHOT
+          ports:
+            - containerPort: 9295
+          env:
+            - name: SPRING_APPLICATION_NAME
+              value: "HYSTRIXDASHBOARD"
+            - name: HYSTRIX_DASHBOARD_PROXY-STREAM-ALLOW-LIST
+              value: "*"
+            - name: EUREKA_CLIENT_REGISTER-WITH-EUREKA
+              value: "true"
+            - name: EUREKA_CLIENT_FETCH-REGISTRY
+              value: "true"
+            - name: EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE
+              value: "http://eureka-0.eureka.default.svc.cluster.local:8761/eureka"
+            - name: EUREKA_INSTANCE_PREFER-IP-ADDRESS
+              value: "true"

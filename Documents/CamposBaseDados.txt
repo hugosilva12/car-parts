@@ -1,0 +1,81 @@
+## Database Users
+# User
+- user_id (PK)
+- username
+- password
+- name
+- nif
+- address
+- phone
+- role (FK RoleUser)
+
+# RoleUser
+- role_id (PK)
+- name
+
+## Database Cars
+# Car
+- car_id (PK)
+- brand
+- model
+- year
+- vin
+- hp
+- km
+- fuel
+- gear
+- version
+- entry_date
+- price
+
+## Database Itens
+# Item
+- item_id (PK)
+- name
+- sku
+- category
+- description
+- image
+- unit_price
+- state
+- orige 
+- car_id
+- positionStock 
+
+## Database Stocks
+# Stock
+- stock_id (PK)
+- name
+- total_space
+- free_space
+
+# Position
+- position_id (PK)
+- state
+- stock_id (FK Stock)
+
+## Database Prices
+# PriceHistory
+- history_id (PK)
+- item_id (FK Item)
+- unit_price
+- _price
+- sales_price
+
+## Database Ads
+# Ad
+- ad_id (PK)
+- title
+- date
+- item_id (FK Item)
+- item_name
+- item_state
+- price
+
+## Database Sales
+# Sale
+- sale_id (PK)
+- user_id (FK User)
+- date
+- price
+- item_id (FK Item)

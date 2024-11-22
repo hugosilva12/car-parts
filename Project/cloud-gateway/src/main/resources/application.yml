@@ -1,0 +1,114 @@
+server:
+  port: 9191
+spring:
+  config:
+    import: 'optional:configserver:'
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      routes:
+        - id: AUTH-SERVICE
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - AuthFilter
+            - name: CircuitBreaker
+              args:
+                name: AUTH-SERVICE
+                fallbackuri: 'forward:/authServiceFallBack'
+        - id: USER-SERVICE
+          uri: 'lb://USER-SERVICE'
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - AuthFilter
+            - name: CircuitBreaker
+              args:
+                name: USER-SERVICE
+                fallbackuri: 'forward:/userServiceFallBack'
+        - id: PURCHASE-SERVICE
+          uri: 'lb://PURCHASE-SERVICE'
+          predicates:
+            - Path=/api/purchases/**
+          filters:
+            - AuthFilter
+            - name: CircuitBreaker
+              args:
+                name: PURCHASE-SERVICE
+                fallbackuri: 'forward:/purchaseServiceFallBack'
+        - id: CARDISASSEMBLY-SERVICE
+          uri: 'lb://CARDISASSEMBLY-SERVICE'
+          predicates:
+            - Path=/api/cardisassembly/**
+          filters:
+            - AuthFilter
+            - name: CircuitBreaker
+              args:
+                name: CARDISASSEMBLY-SERVICE
+                fallbackuri: 'forward:/cardisassemblyServiceFallBack'
+        - id: ADVERTISING-SERVICE
+          uri: 'lb://ADVERTISING-SERVICE'
+          predicates:
+            - Path=/api/advertisement/**
+          filters:
+            - AuthFilter
+            - name: CircuitBreaker
+              args:
+                name: ADVERTISING-SERVICE
+                fallbackuri: 'forward:/advertisementServiceFallBack'
+        - id: SALES-SERVICE
+          uri: 'lb://SALES-SERVICE'
+          predicates:
+            - Path=/api/sales/**
+          filters:
+            - AuthFilter
+            - name: CircuitBreaker
+              args:
+                name: SALES-SERVICE
+                fallbackuri: 'forward:/salesServiceFallBack'
+        - id:  STORAGE-SERVICE
+          uri: 'lb://STORAGE-SERVICE'
+          predicates:
+            - Path=/api/storage/**
+          filters:
+            - AuthFilter
+            - name: CircuitBreaker
+              args:
+                name: STORAGE-SERVICE
+                fallbackuri: 'forward:/storageServiceFallBack'
+        - id: PRECARIOUS-SERVICE
+          uri: 'lb://PRECARIOUS-SERVICE'
+          predicates:
+            - Path=/api/prices/**
+          filters:
+            - AuthFilter
+            - name: CircuitBreaker
+              args:
+                name: PRECARIOUS-SERVICE
+                fallbackuri: 'forward:/precariousServiceFallBack'
+
+
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 15000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: 'http://localhost:8761/eureka/'
+  instance:
+    prefer-ip-address: true
+

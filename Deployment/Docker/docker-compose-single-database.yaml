@@ -1,0 +1,268 @@
+version: "1.0"
+
+services:
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+    - rabbitmq-volume:/var/lib/rabbitmq/
+#Services 
+  service-registry:
+    image: "hugosilva12/service-registry:0.0.1-SNAPSHOT"
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_APPLICATION_NAME=REGISTRY
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=false
+      - EUREKA_CLIENT_FETCH-REGISTRY=false
+  
+  auth-service:
+    image: "hugosilva12/service-auth:0.0.1-SNAPSHOT"
+    container_name: auth-service
+    ports:
+      - "9001:9001"
+    environment:
+      - SPRING_APPLICATION_NAME=AUTH-SERVICE
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/service_auth?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=)AdafGYkL&R#eecBppR^Cuf@#gq2HAI&
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+      - EUREKA_CLIENT_FETCH-REGISTRY=true
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+    depends_on:
+        - rabbitmq
+        - db-mysql
+        - service-registry   
+  user-service:
+    image: "hugosilva12/service-user:0.0.1-SNAPSHOT"
+    container_name: user-service
+    ports:
+      - "9002:9002"
+    environment:
+      - SPRING_APPLICATION_NAME=USER-SERVICE
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/service_user?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=)AdafGYkL&R#eecBppR^Cuf@#gq2HAI&
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+      - EUREKA_CLIENT_FETCH-REGISTRY=true
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+    depends_on:
+        - rabbitmq
+        - db-mysql 
+        - service-registry
+  purchase-service:
+    image: "hugosilva12/service-purchase:0.0.1-SNAPSHOT"
+    container_name: purchase-service
+    ports:
+      - "9003:9003"
+    environment:
+      - SPRING_APPLICATION_NAME=PURCHASE-SERVICE
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/service_purchase?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=)AdafGYkL&R#eecBppR^Cuf@#gq2HAI&
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+      - EUREKA_CLIENT_FETCH-REGISTRY=true
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+    depends_on:
+        - rabbitmq
+        - db-mysql
+        - service-registry
+  cardisassembly-service:
+    image: "hugosilva12/service-cardisassembly:0.0.1-SNAPSHOT"
+    container_name: cardisassembly-service
+    ports:
+      - "9005:9005"
+    environment:
+      - SPRING_APPLICATION_NAME=CARDISASSEMBLY-SERVICE
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/service_cardisassembly?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=)AdafGYkL&R#eecBppR^Cuf@#gq2HAI&
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+      - EUREKA_CLIENT_FETCH-REGISTRY=true
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+    depends_on:
+        - rabbitmq
+        - db-mysql
+        - service-registry
+  advertising-service:
+    image: "hugosilva12/service-advertising:0.0.1-SNAPSHOT"
+    container_name: advertising-service
+    ports:
+      - "9006:9006"
+    environment:
+      - SPRING_APPLICATION_NAME=ADVERTISING-SERVICE
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/service_advertisement?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=)AdafGYkL&R#eecBppR^Cuf@#gq2HAI&
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+      - EUREKA_CLIENT_FETCH-REGISTRY=true
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+    depends_on:
+        - rabbitmq
+        - db-mysql
+        - service-registry
+  sales-service:
+    image: "hugosilva12/service-sales:0.0.1-SNAPSHOT"
+    container_name: sales-service
+    ports:
+      - "9007:9007"
+    environment:
+      - SPRING_APPLICATION_NAME=SALES-SERVICE
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/service_sales?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=)AdafGYkL&R#eecBppR^Cuf@#gq2HAI&
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+      - EUREKA_CLIENT_FETCH-REGISTRY=true
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+    depends_on:
+        - rabbitmq
+        - db-mysql
+        - service-registry
+  precarious-service:
+    image: "hugosilva12/service-precarious:0.0.1-SNAPSHOT"
+    container_name: precarious-service
+    ports:
+      - "9008:9008"
+    environment:
+      - SPRING_APPLICATION_NAME=PRECARIOUS-SERVICE
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/service_prices?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=)AdafGYkL&R#eecBppR^Cuf@#gq2HAI&
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+      - EUREKA_CLIENT_FETCH-REGISTRY=true
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+    depends_on:
+        - rabbitmq
+        - db-mysql
+        - service-registry
+  storage-service:
+    image: "hugosilva12/service-storage:0.0.1-SNAPSHOT"
+    container_name: storage-service
+    ports:
+      - "9009:9009"
+    environment:
+      - SPRING_APPLICATION_NAME=STORAGE-SERVICE
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db-mysql:3306/service_utils1?verifyServerCertificate=false&useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=)AdafGYkL&R#eecBppR^Cuf@#gq2HAI&
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+      - EUREKA_CLIENT_FETCH-REGISTRY=true
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+      - SPRING_RABBITMQ_ADDRESSES=rabbitmq:5672
+    depends_on:
+        - rabbitmq
+        - db-mysql
+        - service-registry
+  hystrix-service:
+    image: "hugosilva12/hystrix:0.0.1-SNAPSHOT"
+    container_name: hystrix-service
+    depends_on:
+      - service-registry
+    ports:
+      - "9295:9295"
+    environment:
+      - SPRING_APPLICATION_NAME=HYSTRIXDASHBOARD
+      - HYSTRIX_DASHBOARD_PROXY-STREAM-ALLOW-LIST=*
+      - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+      - EUREKA_CLIENT_FETCH-REGISTRY=true
+      - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+      - EUREKA_INSTANCE_PREFER-IP-ADDRESS=true
+  gateway:
+    image: "hugosilva12/service-gateway:0.0.1-SNAPSHOT"
+    container_name: gateway-service
+    depends_on:
+      - service-registry
+    ports:
+      - "9191:9191"
+    environment: 
+     - SPRING_APPLICATION_NAME=GATEWAY
+     - SPRING_CLOUD_HTTPCLIENT_CONNECT-TIMEOUT=2000
+     - SPRING_CLOUD_HTTPCLIENT_RESPONSE-TIMEOUT=10s
+     - SPRING_CLOUD_GATEWAY_ROUTES[0]_ID=AUTH-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[0]_URI=lb://AUTH-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[0]_PREDICATES[0]=Path=/api/auth/**
+     - SPRING_CLOUD_GATEWAY_ROUTES[0]_FILTERS[0]=AuthFilter
+     - SPRING_CLOUD_GATEWAY_ROUTES[0]_FILTERS[1]_NAME=CircuitBreaker
+     - SPRING_CLOUD_GATEWAY_ROUTES[0]_FILTERS[1]_ARGS_NAME=AUTH-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[0]_FILTERS[1]_ARGS_FALLBACKURI=forward:/authServiceFallBack
+     - SPRING_CLOUD_GATEWAY_ROUTES[1]_ID=USER-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[1]_URI=lb://USER-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[1]_PREDICATES[0]=Path=/api/users/**
+     - SPRING_CLOUD_GATEWAY_ROUTES[1]_FILTERS[0]=AuthFilter
+     - SPRING_CLOUD_GATEWAY_ROUTES[1]_FILTERS[1]_NAME=CircuitBreaker
+     - SPRING_CLOUD_GATEWAY_ROUTES[1]_FILTERS[1]_ARGS_NAME=USER-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[1]_FILTERS[1]_ARGS_FALLBACKURI=forward:/userServiceFallBack
+     - SPRING_CLOUD_GATEWAY_ROUTES[2]_ID=PURCHASE-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[2]_URI=lb://PURCHASE-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[2]_PREDICATES[0]=Path=/api/purchases/**
+     - SPRING_CLOUD_GATEWAY_ROUTES[2]_FILTERS[0]=AuthFilter
+     - SPRING_CLOUD_GATEWAY_ROUTES[2]_FILTERS[1]_NAME=CircuitBreaker
+     - SPRING_CLOUD_GATEWAY_ROUTES[2]_FILTERS[1]_ARGS_NAME=PURCHASE-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[2]_FILTERS[1]_ARGS_FALLBACKURI=forward:/purchaseServiceFallBack
+     - SPRING_CLOUD_GATEWAY_ROUTES[3]_ID=CARDISASSEMBLY-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[3]_URI=lb://CARDISASSEMBLY-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[3]_PREDICATES[0]=Path=/api/cardisassembly/**
+     - SPRING_CLOUD_GATEWAY_ROUTES[3]_FILTERS[0]=AuthFilter
+     - SPRING_CLOUD_GATEWAY_ROUTES[3]_FILTERS[1]_NAME=CircuitBreaker
+     - SPRING_CLOUD_GATEWAY_ROUTES[3]_FILTERS[1]_ARGS_NAME=CARDISASSEMBLY-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[3]_FILTERS[1]_ARGS_FALLBACKURI=forward:/cardisassemblyServiceFallBack
+     - SPRING_CLOUD_GATEWAY_ROUTES[4]_URI=lb://ADVERTISING-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[4]_PREDICATES[0]=Path=/api/advertisement/**
+     - SPRING_CLOUD_GATEWAY_ROUTES[4]_FILTERS[0]=AuthFilter
+     - SPRING_CLOUD_GATEWAY_ROUTES[4]_FILTERS[1]_NAME=CircuitBreaker
+     - SPRING_CLOUD_GATEWAY_ROUTES[4]_FILTERS[1]_ARGS_NAME=ADVERTISING-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[4]_FILTERS[1]_ARGS_FALLBACKURI=forward:/advertisementServiceFallBack
+     - SPRING_CLOUD_GATEWAY_ROUTES[5]_URI=lb://SALES-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[5]_PREDICATES[0]=Path=/api/sales/**
+     - SPRING_CLOUD_GATEWAY_ROUTES[5]_FILTERS[0]=AuthFilter
+     - SPRING_CLOUD_GATEWAY_ROUTES[5]_FILTERS[1]_NAME=CircuitBreaker
+     - SPRING_CLOUD_GATEWAY_ROUTES[5]_FILTERS[1]_ARGS_NAME=SALES-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[5]_FILTERS[1]_ARGS_FALLBACKURI=forward:/salesServiceFallBack  
+     - SPRING_CLOUD_GATEWAY_ROUTES[6]_URI=lb://STORAGE-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[6]_PREDICATES[0]=Path=/api/storage/**
+     - SPRING_CLOUD_GATEWAY_ROUTES[6]_FILTERS[0]=AuthFilter
+     - SPRING_CLOUD_GATEWAY_ROUTES[6]_FILTERS[1]_NAME=CircuitBreaker
+     - SPRING_CLOUD_GATEWAY_ROUTES[6]_FILTERS[1]_ARGS_NAME=STORAGE-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[6]_FILTERS[1]_ARGS_FALLBACKURI=forward:/storageServiceFallBack
+     - SPRING_CLOUD_GATEWAY_ROUTES[7]_URI=lb://PRECARIOUS-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[7]_PREDICATES[0]=Path=/api/prices/**
+     - SPRING_CLOUD_GATEWAY_ROUTES[7]_FILTERS[0]=AuthFilter
+     - SPRING_CLOUD_GATEWAY_ROUTES[7]_FILTERS[1]_NAME=CircuitBreaker
+     - SPRING_CLOUD_GATEWAY_ROUTES[7]_FILTERS[1]_ARGS_NAME=PRECARIOUS-SERVICE
+     - SPRING_CLOUD_GATEWAY_ROUTES[7]_FILTERS[1]_ARGS_FALLBACKURI=forward:/precariousServiceFallBack
+     - EUREKA_CLIENT_REGISTER-WITH-EUREKA=true
+     - EUREKA_CLIENT_FETCH-REGISTRY=true
+     - EUREKA_CLIENT_SERVICE-URL_DEFAULTZONE=http://service-registry:8761/eureka
+     - EUREKA_INSTANCE_PREFER-IP-ADDRESS=true
+     - HYSTRIX_COMMAND_FALLBACKCMD_EXECUTION_ISOLATION_THREAD_TIMEOUTINMILLISECONDS=20000
+     - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=hystrix.stream
+
+ #Database        
+  db-mysql:
+    image:  "hugosilva12/mysql_v3:latest"
+    expose:
+      - 3306
+    container_name: database
+    environment:
+      MYSQL_ROOT_PASSWORD: ')AdafGYkL&R#eecBppR^Cuf@#gq2HAI&'
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - db-volume:/var/lib/mysql    
+volumes:
+  db-volume: {} 
+  rabbitmq-volume: {} 
