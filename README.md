@@ -1,120 +1,96 @@
-# TP_MTSDS
-
-## **Arquitetura do Projeto**
- <img title="Logotipo" alt="Logo" src="https://gitlab.estg.ipp.pt/grupo_mtsds/tp_mtsds/-/raw/development/Documentos/Arquitetura.png" width="600">
+## **Project Architecture**
+ <img title="Logotipo" alt="Logo" src="https://github.com/hugosilva12/car_parts/blob/main/Documents/Arquitetura.png" width="600">
  
-## *Descrição dos serviços*
+## *Description of services*
 
 ### Auth-Service
-Neste serviço são criadas as contas que permitem fazerem autenticação no sistema. É também aqui que é efetuada a  gestão de permissões e perfis de utilizadores.
+This service is responsible for creating accounts that allow authentication in the system. It also manages user permissions and profiles.
 
 ### User-Service
-Este serviço tem como função realizar a gestão de utilizadores do sistema, o sistema possui 3 tipos de utilizadores (Admin, Worker e Client). <br>
+The purpose of this service is to manage users in the system. There are 3 types of users: Admin, Worker, and Client.
 
 ### Purchase-Service
-Este serviço tem como função realizar a gestão de compras de automóveis. <br>
+This service is responsible for managing car purchases. <br>
 
 ### Cardisassembly-Service
-Este serviço tem como função realizar a gestão das peças desmontadas sendo o serviço `central` do projeto.<br>
+This service is responsible for managing disassembled parts and is the `central` service of the project. <br>
 
 ### Advertising-Service
-Este serviço tem como função realizar a gestão de anúncios das peças.<br>
+This service is responsible for managing the advertisements of the parts. <br>
 
 ### Storage-Service
-Este serviço tem como função gerir o armazém da empresa, é aqui que é gerida a ocupação das 8 secções que constituem o armazém.<br>
+This service manages the company's warehouse and oversees the occupancy of the 8 sections that make up the warehouse. <br>
 
 ### Precarious-Service
-Este serviço tem como função armazenar o histórico de vendas da empresa. É também neste serviço que é calculado a margem/prejuizo de cada carro.<br>
+This service stores the company's sales history. It is also in this service that the profit/loss for each car is calculated. <br>
 
 ### Sales-Service
-Este serviço tem como função gerir a venda de peças.<br>
+This service manages the sale of parts. <br>
 
 ### Hystrix-Service
-Dado a arquitetura do projeto, existe um conjunto de serviços que colaboram
-entre si, sendo que caso algo falhe pode afetar os restantes ou mesmo colocar o sistema inacessível (por exemplo o Auth Service em caso de falha impossibilita a utilização do projeto ).
-Para minimizar estas falhas foi usado o Hystrix. O Hystrix é uma biblioteca que ajuda a
-controlar a interação entre serviços fornecendo tolerância a falhas a latência. Quando um serviço falha é isolado dos outros para que estes se mantenham a funcionar.<br>
-**Nota de Rodapé** https://github.com/Netflix/Hystrix 
+Given the architecture of the project, there is a set of services that collaborate with each other, and if something fails, it can affect others or even make the system inaccessible (for example, the Auth Service, in case of failure, prevents the system from being used). To minimize these failures, Hystrix was used. Hystrix is a library that helps control the interaction between services, providing failure tolerance to latency. When a service fails, it is isolated from others so they can continue functioning. <br>
+**Footer Note**: https://github.com/Netflix/Hystrix 
 
 ### Gateway-Service
-O Spring Cloud Gateway fornece uma biblioteca para construir uma API Gateway sobre o Spring WebFlux. O Spring Cloud Gateway visa fornecer uma maneira simples e eficaz de rotear para Serviços e fornecer preocupações transversais a eles, como por exemplo segurança e 
-monitorização.
-Todas as comunicações do front-end são realizadas para o Gateway service. Este depois reencaminha-as para o serviço responsável pelo endpoint.<br>
-Vantagens de utilização do Gateway:
-- Serviço de autorização do sistema centralizado, dado que a comunicação frontend-backend é realizada apenas pelo gateway.
-- A porta para comunicação é sempre a mesma não sendo necessário saber exatamente em que porta está a correr cada serviço.
-- Possui a funcionalidade de adicionar filtros às rotas. <br>
+Spring Cloud Gateway provides a library to build an API Gateway over Spring WebFlux. It aims to provide a simple and effective way to route to services and provide cross-cutting concerns to them, such as security and monitoring. All communications from the front-end are sent to the Gateway service, which then redirects them to the service responsible for the endpoint. <br>
+Advantages of using the Gateway:
+- Centralized system authorization service, as front-end to back-end communication is only handled through the gateway.
+- The communication port is always the same, so there is no need to know exactly on which port each service is running.
+- It has the functionality of adding filters to the routes. <br>
 
-Desvantagens de utilização do Gateway:
-- Em caso de falha sistema fica indisponivel.
+Disadvantages of using the Gateway:
+- In case of failure, the system becomes unavailable.
 
 ### ServiceRegistry
-O Eureka Server é dos principais princípios de uma arquitetura baseada em microserviços e contém as informações sobre todos os serviços `clientes`. Cada micro serviço do projeto é registado no servidor Eureka sendo que este irá conhecer a porta e endereço IP em que cada um está a ser executado.
-A principal vantagem da utilização do eureka é que os serviços se podem encontrar e comunicar sem existir necessidade de colocar o host ou a porta  de forma hard coded.
+Eureka Server is one of the key principles of a microservices-based architecture and contains information about all `client` services. Each microservice in the project is registered with the Eureka server, which then knows the port and IP address of each service. The main advantage of using Eureka is that services can find and communicate with each other without hardcoding the host or port. 
 
-## **Comunicações assíncronas entre serviços**
-**User-Service** :arrow_right: **Auth-Service** o serviço de utilizadores envia mensagem com os dados de autenticação quando é efetuado o registo de uma nova conta.<br><br>
+## **Asynchronous Communications Between Services**
+**User-Service** :arrow_right: **Auth-Service** The user service sends an authentication message with the account data when a new account is registered. <br><br>
 
-**Auth-Service** :arrow_right: **User-Service** após receção dos dados para criar uma conta de autenticação envia uma mensagem confirmando o registo da conta ou, caso os dados sejam inválidos, envia uma mensagem para o User-Service remover a conta.  <br> <br>
-**User-Service** :arrow_right: **Auth-Service** o serviço de utilizadores envia mensagem para que a conta de autenticação seja desativada quando um utilizador é removido.<br><br>
+**Auth-Service** :arrow_right: **User-Service** After receiving the data to create an authentication account, it sends a message confirming the registration or, if the data is invalid, sends a message to User-Service to remove the account. <br><br>
+**User-Service** :arrow_right: **Auth-Service** The user service sends a message to deactivate the authentication account when a user is removed. <br><br>
 
-**Cardisassembly-Service** :arrow_right: **Purchase-Service** o serviço de desmontagem quando recebe uma nova peça para registar envia mensagem para que o serviço de compras verifique se o carro introduzido na criação de uma peça é válido.
-<br><br>
-**Purchase-Service** :arrow_right: **Cardisassembly-Service** o serviço de compras envia mensagem para  o serviço de desmontagem de peças informando se o carro está ou não registado no sistema.<br><br>
+**Cardisassembly-Service** :arrow_right: **Purchase-Service** The disassembly service, when it receives a new part to register, sends a message for the purchase service to verify if the car introduced in the creation of a part is valid. <br><br>
 
+**Purchase-Service** :arrow_right: **Cardisassembly-Service** The purchase service sends a message to the disassembly service to inform whether the car is registered in the system. <br><br>
 
-**Cardisassembly-Service** :arrow_right: **Advertising-Service** quando o serviço de desmontagem recebe a mensagem do serviço de compras a indicar se o carro existe ou não verifica-a e, caso a resposta seja válida,  envia uma mensagem para o serviço de anúncios com os dados para criação de um novo anúncio. <br><br>
+**Cardisassembly-Service** :arrow_right: **Advertising-Service** When the disassembly service receives a message from the purchase service indicating whether the car exists or not, it verifies it and, if valid, sends a message to the advertising service with the data to create a new advertisement. <br><br>
 
-**Advertising-Service** :arrow_right: **Cardisassembly-Service** assim que um anúncio é criado o serviço de anuncios envia uma mensagem para o serviço de desmontagem indicando que a peça já se encontra anunciada para venda. 
+**Advertising-Service** :arrow_right: **Cardisassembly-Service** As soon as an advertisement is created, the advertising service sends a message to the disassembly service indicating that the part is now advertised for sale. 
 
-**Cardisassembly-Service** :arrow_right: **Storage-Service** quando o serviço de desmontagem recebe a mensagem do serviço de compras a indicar se o carro existe ou não verifica-a e caso a resposta seja válida,  envia uma mensagem para o serviço de gestão de armazém indicando que existe uma nova peça em stock. <br><br>
+**Cardisassembly-Service** :arrow_right: **Storage-Service** When the disassembly service receives a message from the purchase service indicating whether the car exists or not, it verifies it, and if valid, sends a message to the warehouse management service indicating that a new part is in stock. <br><br>
 
-**Purchase-Service** :arrow_right: **Cardisassembly-Service** quando o serviço de compras recebe um request Post para criar uma nova venda envia mensagem para o serviço de desmontagem para que este verifique se a peça ainda está disponivel para venda. <br><br>
+**Purchase-Service** :arrow_right: **Cardisassembly-Service** When the purchase service receives a POST request to create a new sale, it sends a message to the disassembly service to check if the part is still available for sale. <br><br>
 
-**Cardisassembly-Service** :arrow_right: **Purchase-Service** quando o serviço de desmontagem recebe uma mensagem do serviço de compras para verificar se a peça está disponivel para venda faz a verificação e envia uma mensagem confirmando ou recusando a venda. <br><br>
+**Cardisassembly-Service** :arrow_right: **Purchase-Service** When the disassembly service receives a message from the purchase service to verify if the part is available for sale, it performs the check and sends a message confirming or rejecting the sale. <br><br>
 
-**Cardisassembly-Service** :arrow_right: **Storage-Service** quando o serviço de desmontagem recebe uma mensagem do serviço de compras para verificar se a peça está disponivel para venda faz a verificação e, quando a compra pode ser confirmada,  envia uma mensagem ao serviço de gestão de stock informando que a peça deixa de estar em stock. <br><br>
+**Cardisassembly-Service** :arrow_right: **Storage-Service** When the disassembly service receives a message from the purchase service to check if the part is available for sale, it performs the check and, when the purchase can be confirmed, sends a message to the stock management service to inform that the part is no longer in stock. <br><br>
 
-**Cardisassembly-Service** :arrow_right: **Advertising-Service** quando o serviço de desmontagem recebe uma mensagem do serviço de compras para verificar se a peça está disponivel para venda faz a verificação e, quando a compra pode ser confirmada,  envia uma mensagem ao serviço de anúncios para que este proceda à remoção do anúncio. <br><br>
+**Cardisassembly-Service** :arrow_right: **Advertising-Service** When the disassembly service receives a message from the purchase service to check if the part is available for sale, it performs the check and, when the purchase can be confirmed, sends a message to the advertising service to remove the advertisement. <br><br>
 
-**Cardisassembly-Service** :arrow_right: **Precarious-Service** quando o serviço de desmontagem recebe uma mensagem do serviço de compras para verificar se a peça está disponivel para venda faz a verificação e, quando a compra pode ser confirmada,  envia uma mensagem ao para o serviço do  histórico de preços com o valor, a data e informações da peça vendida. <br><br>
+**Cardisassembly-Service** :arrow_right: **Precarious-Service** When the disassembly service receives a message from the purchase service to check if the part is available for sale, it performs the check and, when the purchase is confirmed, sends a message to the price history service with the value, date, and details of the part sold. <br><br>
 
-## **Tecnologias Utilizadas**
+## **Technologies Used**
 
-**Spring Boot**  é uma framework Open Source desenvolvida em JAVA. Foi criada com o objetivo de facilitar o
-desenvolvimento de aplicações, explorando, para isso, os conceitos de Inversion of Control e Injeção de Dependências.
+**Spring Boot** is an open-source framework developed in Java. It was created with the aim of facilitating the development of applications by exploring the concepts of Inversion of Control and Dependency Injection.
 
-**React**  React JS é uma biblioteca JavaScript para a criação de interfaces de utilizador — ou UI (user interface). React é baseado em componentes, o que permite o reaproveitamento de código e facilita a manutenção.
+**React** React JS is a JavaScript library for creating user interfaces (UI). React is based on components, allowing code reuse and simplifying maintenance.
 
+**MySQL** The relational databases used for services are in MySQL.
 
-**MySQL**  As bases de dados relacionais usadas para serviços são em MYSQL.
+**Docker** is an open-source container creation platform, with the main goal of allowing developers to create application packages within containers, simplifying the delivery of distributed applications. The three types of containers used in the project were:
+- Spring Boot containers for the services;
+- MySQL container for the databases;
+- RabbitMQ container for the communication protocol;
 
-**Docker** consiste numa plataforma de criação de containers Open Source e tem como principal objetivo permitir que
-developers criem packages de aplicações dentro de containers, simplificando assim a entrega de
-aplicações distribuídas.
-Os três tipos de containers utilizados para o projeto foram:
-- Containers Spring boot para os serviços;
-- Container MySQL para as base de dados;
-- Container RabbitMq para o protocolo de comunicações;
+**RabbitMQ** is an open-source message broker that implements the Advanced Message Queuing Protocol (AMQP). It handles message traffic quickly and reliably. The choice of this technology for the project was due to its ease of implementation and ability to handle asynchronous communications between services, storing messages in queues.
+**Link to RabbitMQ information**: https://en.wikipedia.org/wiki/RabbitMQ (Footer)
 
-**RabbitMQ**É um software de mensagens open source, que implementa o Advance Message Queuing
-Protocol (AMQP).Este tem a capacidade de lidar com o tráfego de mensagens de forma rápida
-e confiável.
- A escolha desta tecnologia para projeto devesse à simplicidade de implementação que esta oferece e à sua capacidade de realizar comunicações assíncronas entre serviços, armazenando as mensagens em queues.
-Link com informação do RabbitMQ (https://en.wikipedia.org/wiki/RabbitMQ) meter em rodapé.
-
-**Kubernetes** Kubernetes é um sistema de orquestração de contêineres open-source que automatiza a implantação, o dimensionamento e a gestão de aplicações em contêineres. 
-Link com informação do Kubernetes (https://www.vmware.com/topics/glossary/content/kubernetes.html) meter em rodapé.
-
-
-
-## **Setup local**
-**JDK:** usar JDK 8, também chamado de 1.8 (é garantido que funciona com a versão 2021.0.5 da cloud que será utilizada) <br>
-**Dados de Acesso de acesso gerados automaticamente:** *username*:  `root` *password*: `password` <br>
-
+**Kubernetes** is an open-source container orchestration system that automates the deployment, scaling, and management of containerized applications. 
+**Link to Kubernetes information**: https://www.vmware.com/topics/glossary/content/kubernetes.html (Footer)
 
 ## **Docker Compose**
-Usar compose `docker-compose-single-database.yaml`. `docker-compose.yaml` fica para demonstração de funcionamento de múltiplos containers para as base de dados.
+Use `docker-compose-single-database.yaml` for a single database setup. The `docker-compose.yaml` is for demonstrating the functionality of multiple containers for databases.
 
 
 
